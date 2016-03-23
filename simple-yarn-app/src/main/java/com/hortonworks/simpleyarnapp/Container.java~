@@ -1,0 +1,13 @@
+package com.hortonworks.simpleyarnapp;
+
+
+public class Container {
+
+    public static void mains(String[] args) throws Exception {
+
+        final String url_list = args[0];
+        
+        System.out.println("Container code launched. url_list=<"+url_list+">");
+
+    }
+}
