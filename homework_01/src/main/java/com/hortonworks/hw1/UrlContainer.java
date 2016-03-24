@@ -1,4 +1,4 @@
-package com.hortonworks.simpleyarnapp;
+package com.hortonworks.hw1;
 
 import java.io.*;
 import java.util.*;
@@ -7,6 +7,9 @@ import org.apache.hadoop.fs.*;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.util.*;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Cleaner;
+import org.jsoup.safety.Whitelist;
 
 public class UrlContainer {
 
@@ -34,13 +37,19 @@ public class UrlContainer {
         final String url = parts[5];
 
         System.out.println("Processing id=<"+id+">, url=<"+url+">.");
-        Map<String,Integer> words_count = calcWords(url);
+        Map<String,Integer> words_count = calcWords(getPageText(url));
 
         String out_file_path = output_path + "/" + id + ".txt";
         System.out.println("Printing output to <" + out_file_path + ">");
         PrintWriter output_writer = openOutput(out_file_path);
-        output_writer.println(words_count.toString());
+        output_writer.println(sortHashMapByValuesD((HashMap)words_count).toString());
         output_writer.close();
+    }
+
+    private String getPageText(String url) throws Exception {
+        System.out.println("URL: <"+url+">");
+        Cleaner cleaner = new Cleaner(Whitelist.simpleText());
+        return cleaner.clean(Jsoup.parse(new URL(url),10000)).text();
     }
 
     private Map<String,Integer> calcWords(String text) throws Exception {
@@ -71,6 +80,37 @@ public class UrlContainer {
         Path pt=new Path(url_list);
         FileSystem fs = FileSystem.get(new Configuration());
         return new BufferedReader(new InputStreamReader(fs.open(pt)));
+    }
+
+    public LinkedHashMap sortHashMapByValuesD(HashMap passedMap) {
+       List mapKeys = new ArrayList(passedMap.keySet());
+       List mapValues = new ArrayList(passedMap.values());
+       Collections.sort(mapValues);
+       Collections.sort(mapKeys);
+
+       LinkedHashMap sortedMap = new LinkedHashMap();
+
+       Iterator valueIt = mapValues.iterator();
+       while (valueIt.hasNext()) {
+           Object val = valueIt.next();
+           Iterator keyIt = mapKeys.iterator();
+
+           while (keyIt.hasNext()) {
+               Object key = keyIt.next();
+               String comp1 = passedMap.get(key).toString();
+               String comp2 = val.toString();
+
+               if (comp1.equals(comp2)){
+                   passedMap.remove(key);
+                   mapKeys.remove(key);
+                   sortedMap.put((String)key, (Integer)val);
+                   break;
+               }
+
+           }
+
+       }
+       return sortedMap;
     }
 
     public static void main(String[] args) throws Exception {

@@ -1,17 +1,16 @@
-package com.hortonworks.simpleyarnapp;
+package com.hortonworks.hw1;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
@@ -56,7 +55,7 @@ public class Client {
         Collections.singletonList(
             "$JAVA_HOME/bin/java" +
             " -Xmx256M" +
-            " com.hortonworks.simpleyarnapp.ApplicationMaster" +
+            " com.hortonworks.hw1.ApplicationMaster" +
             " " + url_file +
             " " + output_path +
             " " + String.valueOf(n) +
@@ -70,7 +69,7 @@ public class Client {
     LocalResource appMasterJar = Records.newRecord(LocalResource.class);
     setupAppMasterJar(jarPath, appMasterJar);
     amContainer.setLocalResources(
-        Collections.singletonMap("simpleapp.jar", appMasterJar));
+        Collections.singletonMap("hw1.jar", appMasterJar));
 
     System.out.println("Setup CLASSPATH for ApplicationMaster");
     Map<String, String> appMasterEnv = new HashMap<String, String>();
@@ -84,7 +83,7 @@ public class Client {
 
     System.out.println("Finally, set-up ApplicationSubmissionContext for the application");
     ApplicationSubmissionContext appContext =  app.getApplicationSubmissionContext();
-    appContext.setApplicationName("simple-yarn-app");
+    appContext.setApplicationName("Homework 1");
     appContext.setAMContainerSpec(amContainer);
     appContext.setResource(capability);
     appContext.setQueue("default");

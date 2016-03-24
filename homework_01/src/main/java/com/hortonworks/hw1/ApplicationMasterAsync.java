@@ -132,5 +132,6 @@ public class ApplicationMasterAsync implements AMRMClientAsync.CallbackHandler {
                 FinalApplicationStatus.SUCCEEDED, "", "");
         System.out.println("[AM] unregisterApplicationMaster 1");
     }
+
 }
 

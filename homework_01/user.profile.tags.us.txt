@@ -1,4 +1,5 @@
 ID	Keyword Value	Keyword Status	Pricing Type	Keyword Match Type	Destination URL
+1		ON	CPC	BROAD	http://habrahabr.ru
 282163091263		ON	CPC	BROAD	http://www.miniinthebox.com/oil-pollution-cleaning-automobile-engine-pipe-with-reinigungspistole-spray-gun-tool_p4815979.html
 282163090732		ON	CPC	BROAD	http://www.miniinthebox.com/obdmate-diagnostic-tool-obd2-obdii-eobd-code-reader-om510-gasoline-cars-and-a-part-of-diesel-cars_p1516838.html
 282163096883		ON	CPC	BROAD	http://www.miniinthebox.com/obd_c9859
