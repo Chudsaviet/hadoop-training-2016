@@ -34,20 +34,21 @@ public class Client {
   Configuration conf = new YarnConfiguration();
   
   public void run(String[] args) throws Exception {
-    final String command = args[0];
-    final int n = Integer.valueOf(args[1]);
-    final Path jarPath = new Path(args[2]);
+    final String url_file = args[0];
+    final String output_path = args[1];
+    final int n = Integer.valueOf(args[2]);
+    final Path jarPath = new Path(args[3]);
 
-    System.out.println(" Create yarnClient");
+    System.out.println("Create yarnClient");
     YarnConfiguration conf = new YarnConfiguration();
     YarnClient yarnClient = YarnClient.createYarnClient();
     yarnClient.init(conf);
     yarnClient.start();
     
-    System.out.println(" Create application via yarnClient");
+    System.out.println("Create application via yarnClient");
     YarnClientApplication app = yarnClient.createApplication();
 
-    System.out.println(" Set up the container launch context for the application master");
+    System.out.println("Set up the container launch context for the application master");
     System.out.println("ApplicationConstants.LOG_DIR_EXPANSION_VAR="+ApplicationConstants.LOG_DIR_EXPANSION_VAR);
     ContainerLaunchContext amContainer = 
         Records.newRecord(ContainerLaunchContext.class);
@@ -56,7 +57,8 @@ public class Client {
             "$JAVA_HOME/bin/java" +
             " -Xmx256M" +
             " com.hortonworks.simpleyarnapp.ApplicationMaster" +
-            " " + command +
+            " " + url_file +
+            " " + output_path +
             " " + String.valueOf(n) +
             " " + jarPath +
             " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + 
@@ -64,31 +66,30 @@ public class Client {
             )
         );
     
-    System.out.println(" Setup jar for ApplicationMaster");
+    System.out.println("Setup jar for ApplicationMaster");
     LocalResource appMasterJar = Records.newRecord(LocalResource.class);
     setupAppMasterJar(jarPath, appMasterJar);
     amContainer.setLocalResources(
         Collections.singletonMap("simpleapp.jar", appMasterJar));
 
-    System.out.println(" Setup CLASSPATH for ApplicationMaster");
+    System.out.println("Setup CLASSPATH for ApplicationMaster");
     Map<String, String> appMasterEnv = new HashMap<String, String>();
     setupAppMasterEnv(appMasterEnv);
     amContainer.setEnvironment(appMasterEnv);
     
-    System.out.println(" Set up resource type requirements for ApplicationMaster");
+    System.out.println("Set up resource type requirements for ApplicationMaster");
     Resource capability = Records.newRecord(Resource.class);
     capability.setMemory(256);
     capability.setVirtualCores(1);
 
-    System.out.println(" Finally, set-up ApplicationSubmissionContext for the application");
-    ApplicationSubmissionContext appContext = 
-    app.getApplicationSubmissionContext();
-    appContext.setApplicationName("simple-yarn-app"); System.out.println(" application name");
+    System.out.println("Finally, set-up ApplicationSubmissionContext for the application");
+    ApplicationSubmissionContext appContext =  app.getApplicationSubmissionContext();
+    appContext.setApplicationName("simple-yarn-app");
     appContext.setAMContainerSpec(amContainer);
     appContext.setResource(capability);
-    appContext.setQueue("default"); System.out.println(" queue ");
+    appContext.setQueue("default");
 
-    System.out.println(" Submit application");
+    System.out.println("Submit application");
     ApplicationId appId = appContext.getApplicationId();
     System.out.println("Submitting application " + appId);
     yarnClient.submitApplication(appContext);

@@ -47,14 +47,13 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 public class ApplicationMaster {
-    
-  
 
   public static void main(String[] args) throws Exception {
 
-    String command = args[0];
-    final int n = Integer.valueOf(args[1]);
-    final Path jarPath = new Path(args[2]);
+    String url_file = args[0];
+    String output_path = args[1];
+    final int n = Integer.valueOf(args[2]);
+    final Path jarPath = new Path(args[3]);
     
     // Initialize clients to ResourceManager and NodeManagers
     Configuration conf = new YarnConfiguration();
@@ -99,10 +98,11 @@ public class ApplicationMaster {
                     Records.newRecord(ContainerLaunchContext.class);
 
             // Calculate command
-            command = "$JAVA_HOME/bin/java" +
+            String command = "$JAVA_HOME/bin/java" +
                     " -Xmx256M" +
                     " com.hortonworks.simpleyarnapp.UrlContainer" +
-                    " " + command +
+                    " " + url_file +
+                    " " + output_path +
                     " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + 
                     " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
 
