@@ -1,4 +1,4 @@
-package com.hortonworks.hw1;
+package org.tk.hw1;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,7 +89,7 @@ public class ApplicationMaster {
             // Calculate command
             String command = "$JAVA_HOME/bin/java" +
                     " -Xmx256M" +
-                    " com.hortonworks.hw1.UrlContainer" +
+                    " org.tk.hw1.UrlContainer" +
                     " " + url_file +
                     " " + output_path +
                     " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + 

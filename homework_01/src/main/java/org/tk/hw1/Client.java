@@ -1,4 +1,4 @@
-package com.hortonworks.hw1;
+package org.tk.hw1;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class Client {
         Collections.singletonList(
             "$JAVA_HOME/bin/java" +
             " -Xmx256M" +
-            " com.hortonworks.hw1.ApplicationMaster" +
+            " org.tk.hw1.ApplicationMaster" +
             " " + url_file +
             " " + output_path +
             " " + String.valueOf(n) +

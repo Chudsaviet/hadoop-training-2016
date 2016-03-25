@@ -1,4 +1,4 @@
-package com.hortonworks.hw1;
+package org.tk.hw1;
 
 import java.io.*;
 import java.util.*;
