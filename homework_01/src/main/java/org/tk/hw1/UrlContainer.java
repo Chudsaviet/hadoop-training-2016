@@ -13,6 +13,13 @@ import org.jsoup.safety.Whitelist;
 
 public class UrlContainer {
 
+    private FileSystem fs;
+
+    public UrlContainer() throws Exception {
+      System.out.println("Creating FileSystem object");
+      fs = FileSystem.get(new Configuration());
+    }
+
     public void run(String[] args) throws Exception {
         final String url_list = args[0];
         final String output_path = args[1];
@@ -22,13 +29,18 @@ public class UrlContainer {
         System.out.println("output_path=<"+output_path+">");
 
         BufferedReader br=openUrlList(url_list);
-        String line=br.readLine(); //skip first line because it contains column names
+        String line="";
         while (line != null){
                 line=br.readLine();
+                int sleep_time = (int)(Math.random()*100000) + 5000;
+                System.out.println("Sleeping "+Integer.toString(sleep_time)+" milliseconds.");
+                Thread.sleep(sleep_time);
+                System.out.println("Processing line <"+line+">");
                 processLine(line,output_path);
         }
 
         br.close();
+        fs.close();
     }
 
     private void processLine(String line, String output_path) throws Exception {
@@ -36,14 +48,23 @@ public class UrlContainer {
         final String id = parts[0];
         final String url = parts[5];
 
-        System.out.println("Processing id=<"+id+">, url=<"+url+">.");
-        Map<String,Integer> words_count = calcWords(getPageText(url));
-
         String out_file_path = output_path + "/" + id + ".txt";
-        System.out.println("Printing output to <" + out_file_path + ">");
+        System.out.println("Processing id=<"+id+">, url=<"+url+">.");
+
         PrintWriter output_writer = openOutput(out_file_path);
-        output_writer.println(sortHashMapByValuesD((HashMap)words_count).toString());
-        output_writer.close();
+        try {
+          Map<String,Integer> words_count = calcWords(getPageText(url));
+          
+          System.out.println("Printing output to <" + out_file_path + ">");
+          
+          output_writer.println(getBiggestValues((HashMap)words_count,10).toString());
+        }
+        catch (Exception e) {
+          System.out.println(e.toString());
+        }
+        finally {
+          output_writer.close();
+        }
     }
 
     private String getPageText(String url) throws Exception {
@@ -54,7 +75,7 @@ public class UrlContainer {
 
     private Map<String,Integer> calcWords(String text) throws Exception {
         Map<String,Integer> words_count = new HashMap<String,Integer>(); 
-        String[] words = text.split("-|\\.|:|/|_|\\s");
+        String[] words = text.split("-|\\.|:|/|_|\\s|<|>|=|\"|\'");
         for (String word : words) {
             if(!word.equals("")) {
                 word=word.toLowerCase();
@@ -72,25 +93,24 @@ public class UrlContainer {
 
     private PrintWriter openOutput(String output_path) throws Exception {
         Path pt=new Path(output_path);
-        FileSystem fs = FileSystem.get(new Configuration());
         return new PrintWriter(fs.create(pt));
     }
 
     private BufferedReader openUrlList(String url_list) throws Exception {
         Path pt=new Path(url_list);
-        FileSystem fs = FileSystem.get(new Configuration());
         return new BufferedReader(new InputStreamReader(fs.open(pt)));
     }
 
-    public LinkedHashMap sortHashMapByValuesD(HashMap passedMap) {
+    public LinkedHashMap getBiggestValues(HashMap passedMap, int n) {
        List mapKeys = new ArrayList(passedMap.keySet());
        List mapValues = new ArrayList(passedMap.values());
-       Collections.sort(mapValues);
-       Collections.sort(mapKeys);
+       Collections.sort(mapKeys,Collections.reverseOrder());
+       Collections.sort(mapValues,Collections.reverseOrder());
 
        LinkedHashMap sortedMap = new LinkedHashMap();
 
        Iterator valueIt = mapValues.iterator();
+       int i=0;
        while (valueIt.hasNext()) {
            Object val = valueIt.next();
            Iterator keyIt = mapKeys.iterator();
@@ -104,17 +124,19 @@ public class UrlContainer {
                    passedMap.remove(key);
                    mapKeys.remove(key);
                    sortedMap.put((String)key, (Integer)val);
+                   i++;
                    break;
                }
 
            }
-
+          if(i==n) break;
        }
        return sortedMap;
     }
 
     public static void main(String[] args) throws Exception {
         UrlContainer uc = new UrlContainer();
+        System.out.println("Starting container");
         uc.run(args);
     }
 }

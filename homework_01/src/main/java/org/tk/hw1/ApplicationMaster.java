@@ -1,10 +1,11 @@
 package org.tk.hw1;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -43,6 +44,9 @@ public class ApplicationMaster {
     String output_path = args[1];
     final int n = Integer.valueOf(args[2]);
     final Path jarPath = new Path(args[3]);
+
+    // Distribute work for containers
+    List<String> container_inputs = distributeLines(output_path+"/work_distribution/", url_file, n);
     
     // Initialize clients to ResourceManager and NodeManagers
     Configuration conf = new YarnConfiguration();
@@ -79,6 +83,7 @@ public class ApplicationMaster {
     // Obtain allocated containers, launch and check for responses
     int responseId = 0;
     int completedContainers = 0;
+    int containerNumber = 0;
     while (completedContainers < n) {
         AllocateResponse response = rmClient.allocate(responseId++);
         for (Container container : response.getAllocatedContainers()) {
@@ -90,21 +95,22 @@ public class ApplicationMaster {
             String command = "$JAVA_HOME/bin/java" +
                     " -Xmx256M" +
                     " org.tk.hw1.UrlContainer" +
-                    " " + url_file +
+                    " " + container_inputs.get(containerNumber) +
                     " " + output_path +
                     " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + 
                     " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+            containerNumber++;
 
-            System.out.println(" Setup jar for ApplicationMaster");
-            LocalResource appMasterJar = Records.newRecord(LocalResource.class);
-            setupAppMasterJar(jarPath, appMasterJar, conf);
+            System.out.println(" Setup jar for Container");
+            LocalResource containerJar = Records.newRecord(LocalResource.class);
+            setupContainerJar(jarPath, containerJar, conf);
             ctx.setLocalResources(
-                Collections.singletonMap("hw1.jar", appMasterJar));
+                Collections.singletonMap("hw1.jar", containerJar));
 
-            System.out.println(" Setup CLASSPATH for ApplicationMaster");
-            Map<String, String> appMasterEnv = new HashMap<String, String>();
-            setupAppMasterEnv(appMasterEnv, conf);
-            ctx.setEnvironment(appMasterEnv);
+            System.out.println(" Setup CLASSPATH for Container");
+            Map<String, String> containerEnc = new HashMap<String, String>();
+            setupContainerEnv(containerEnc, conf);
+            ctx.setEnvironment(containerEnc);
 
             ctx.setCommands(
                     Collections.singletonList(
@@ -127,23 +133,60 @@ public class ApplicationMaster {
         FinalApplicationStatus.SUCCEEDED, "", "");
   }
 
-  private static void setupAppMasterJar(Path jarPath, LocalResource appMasterJar, Configuration conf) throws IOException {
-    FileStatus jarStat = FileSystem.get(conf).getFileStatus(jarPath);
-    appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarPath));
-    appMasterJar.setSize(jarStat.getLen());
-    appMasterJar.setTimestamp(jarStat.getModificationTime());
-    appMasterJar.setType(LocalResourceType.FILE);
-    appMasterJar.setVisibility(LocalResourceVisibility.PUBLIC);
+  private static List<String> distributeLines(String out_path, String file, int n) throws Exception {
+      FileSystem fs = FileSystem.get(new Configuration());
+      Path in_path = new Path(file);
+      BufferedReader in_reader =  new BufferedReader(new InputStreamReader(fs.open(in_path)));
+      int i=0;
+
+      List<String> name_list = new ArrayList<String>(n);
+      List<PrintWriter> writer_list = new ArrayList<PrintWriter>(n);
+
+      for (i=0;i<n;i++) {
+        String name = out_path + "/part_" + Integer.toString(i) + ".txt";
+        name_list.add(name);
+
+        Path writer_path = new Path(name);
+
+        writer_list.add(new PrintWriter(fs.create(writer_path)));
+      }
+
+      i = 0;
+      String line=in_reader.readLine(); //skip first line because it contains column names
+      while (line != null){
+        line=in_reader.readLine();
+        
+        writer_list.get(i).println(line);
+
+        i++;
+        if (i >= n) i=0;
+      }
+
+      for (i=0;i<n;i++) {
+        writer_list.get(i).close();
+      }
+
+      fs.close();
+      return name_list;
   }
 
-  private static void setupAppMasterEnv(Map<String, String> appMasterEnv, Configuration conf) {
+  private static void setupContainerJar(Path jarPath, LocalResource containerJar, Configuration conf) throws IOException {
+    FileStatus jarStat = FileSystem.get(conf).getFileStatus(jarPath);
+    containerJar.setResource(ConverterUtils.getYarnUrlFromPath(jarPath));
+    containerJar.setSize(jarStat.getLen());
+    containerJar.setTimestamp(jarStat.getModificationTime());
+    containerJar.setType(LocalResourceType.FILE);
+    containerJar.setVisibility(LocalResourceVisibility.PUBLIC);
+  }
+
+  private static void setupContainerEnv(Map<String, String> containerEnc, Configuration conf) {
     for (String c : conf.getStrings(
         YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-      Apps.addToEnvironment(appMasterEnv, Environment.CLASSPATH.name(),
+      Apps.addToEnvironment(containerEnc, Environment.CLASSPATH.name(),
           c.trim());
     }
-    Apps.addToEnvironment(appMasterEnv,
+    Apps.addToEnvironment(containerEnc,
         Environment.CLASSPATH.name(),
         Environment.PWD.$() + File.separator + "*");
   }
