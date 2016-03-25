@@ -32,7 +32,7 @@ public class UrlContainer {
         String line="";
         while (line != null){
                 line=br.readLine();
-                int sleep_time = (int)(Math.random()*100000) + 5000;
+                int sleep_time = (int)(Math.random()*30000) + 5000;
                 System.out.println("Sleeping "+Integer.toString(sleep_time)+" milliseconds.");
                 Thread.sleep(sleep_time);
                 System.out.println("Processing line <"+line+">");
