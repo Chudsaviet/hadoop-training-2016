@@ -1,0 +1,1 @@
+git clone https://github.com/Chudsaviet/hadoop-training-2016.git && cd  hadoop-training-2016/homework_01 && ./deploy_and_run.sh
