@@ -1,0 +1,17 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+.classpath
+.project
+.settings
+target
+
+# gedit temp files
+*~
+
+#InteliJ Idea project
+.idea/
