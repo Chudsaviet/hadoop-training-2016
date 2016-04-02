@@ -38,13 +38,16 @@ public class Point03Mapper
 
         DatasetRow inputRow = DatasetRow.parseInputLine(value.toString());
         if (inputRow == null) {
+            context.getCounter(Point03Counter.MALFORMED_ROW).increment(1);
             return;
         }
 
         Map<String, Integer> tagMap = tagsMap.get(inputRow.getID());
 
-        if (tagMap == null)
+        if (tagMap == null) {
+            context.getCounter(Point03Counter.NO_SUCH_ID).increment(1);
             return;
+        }
 
         for (Map.Entry<String, Integer> entry : tagMap.entrySet()) {
             context.write(new Text(entry.getKey()), new IntWritable(entry.getValue()));

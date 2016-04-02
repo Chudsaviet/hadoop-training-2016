@@ -32,6 +32,7 @@ public class Point03 {
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
         job.setMapperClass(Point03Mapper.class);
+        job.setCombinerClass(Point03Reducer.class);
         job.setReducerClass(Point03Reducer.class);
 
         job.setOutputKeyClass(Text.class);

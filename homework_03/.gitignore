@@ -16,3 +16,6 @@ target
 #InteliJ Idea project
 .idea/
 *.iml
+
+#hadoop output files
+part*
