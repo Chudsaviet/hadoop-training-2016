@@ -45,8 +45,7 @@ public class Point03 extends Configured implements Tool{
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
-        return 0;
+        return job.waitForCompletion(true) ? 0 : 1;
     }
 
     public static void main(String[] args) throws Exception {
