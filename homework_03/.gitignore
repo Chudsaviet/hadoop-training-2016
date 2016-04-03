@@ -19,3 +19,7 @@ target
 
 #hadoop output files
 part*
+
+#stderr and stdout files
+*.stderr
+*.stdout

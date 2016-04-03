@@ -17,7 +17,7 @@ public class Point04Mapper
 
         DatasetRow inputRow = DatasetRow.parseInputLine(value.toString());
         if (inputRow == null) {
-            context.getCounter(Point04Counter.MALFORMED_ROW).increment(1);
+            context.getCounter(Point04ErrorCounter.MALFORMED_ROW).increment(1);
             return;
         }
 
@@ -30,19 +30,19 @@ public class Point04Mapper
         );
     }
 
-    private static Point04BrowserCounter getBrowserType(String userAgent) {
+    private static Point04BrowserType getBrowserType(String userAgent) {
         String userAgentLower = userAgent.toLowerCase();
 
-        if(userAgentLower.contains("trident"))
-            return Point04BrowserCounter.IE;
+        if(userAgentLower.contains("msie"))
+            return Point04BrowserType.IE;
         else if(userAgentLower.contains("chrome"))
-            return Point04BrowserCounter.CHROME;
+            return Point04BrowserType.CHROME;
         else if(userAgentLower.contains("opera"))
-            return Point04BrowserCounter.OPERA;
+            return Point04BrowserType.OPERA;
         else if(userAgentLower.contains("mozilla"))
-            return Point04BrowserCounter.MOZILLA;
+            return Point04BrowserType.MOZILLA;
         else
-            return Point04BrowserCounter.OTHER;
+            return Point04BrowserType.OTHER;
     }
 
 }

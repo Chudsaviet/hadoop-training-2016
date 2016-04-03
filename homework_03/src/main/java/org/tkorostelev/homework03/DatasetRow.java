@@ -10,7 +10,6 @@ public class DatasetRow {
     private String id;
 
     public static DatasetRow parseInputLine(String line) {
-        String parsed_id;
         StringTokenizer tokenizer = new StringTokenizer(line, "\t");
 
         int tokensCount = tokenizer.countTokens();

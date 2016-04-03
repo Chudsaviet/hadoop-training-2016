@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import java.io.*;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
@@ -25,10 +26,19 @@ public class Point03Mapper
             throws IOException {
         URI[] cachedFiles = context.getCacheFiles();
 
+        if(cachedFiles == null) {
+            logger.info("Not loading tags map automatically");
+            return;
+        }
+
+        if(cachedFiles.length > 1) {
+            throw new IOException("Need only one tags map file");
+        }
+
         String tagsFileName = (new Path(cachedFiles[0].getPath())).getName();
 
         logger.info("Loading tags list from next archive: " + tagsFileName);
-        tagsMap = loadTagsMap(tagsFileName);
+        loadTagsMap(tagsFileName);
         logger.info("Tags list loaded");
     }
 
@@ -38,14 +48,14 @@ public class Point03Mapper
 
         DatasetRow inputRow = DatasetRow.parseInputLine(value.toString());
         if (inputRow == null) {
-            context.getCounter(Point03Counter.MALFORMED_ROW).increment(1);
+            context.getCounter(Point03ErrorCounter.MALFORMED_ROW).increment(1);
             return;
         }
 
         Map<String, Integer> tagMap = tagsMap.get(inputRow.getID());
 
         if (tagMap == null) {
-            context.getCounter(Point03Counter.NO_SUCH_ID).increment(1);
+            context.getCounter(Point03ErrorCounter.NO_SUCH_ID).increment(1);
             return;
         }
 
@@ -55,7 +65,7 @@ public class Point03Mapper
 
     }
 
-    private Map<String, Map<String, Integer>> loadTagsMap(String tagsFileName)
+    public void loadTagsMap(String tagsFileName)
             throws IOException {
         Map<String, Map<String, Integer>> result = new HashMap<String, Map<String, Integer>>();
 
@@ -77,7 +87,7 @@ public class Point03Mapper
 
             Map<String, Integer> tagMap = result.get(id);
             if (tagMap == null) {
-                tagMap = new HashMap<String, Integer>();
+                tagMap = new LinkedHashMap<String, Integer>();
                 result.put(id, tagMap);
             }
 
@@ -94,7 +104,7 @@ public class Point03Mapper
         gzipStream.close();
         fileStream.close();
 
-        return result;
+        tagsMap = result;
     }
 
 }
