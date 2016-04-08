@@ -24,6 +24,9 @@ public class Point01 extends Configured implements Tool{
         final String outputPath = args[1];
 
         final Configuration conf = getConf();
+        conf.set("mapreduce.map.output.compress", "true");
+        conf.set("mapreduce.output.fileoutputformat.compress.type", "BLOCK");
+        conf.set("mapreduce.output.fileoutputformat.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
 
         Job job = Job.getInstance(conf);
         job.setJarByClass(Point01.class);
@@ -34,6 +37,8 @@ public class Point01 extends Configured implements Tool{
 
         job.setMapperClass(Point01Mapper.class);
         job.setReducerClass(Point01Reducer.class);
+        // Single reducer for single sorted output file
+        job.setNumReduceTasks(1);
 
         job.setOutputKeyClass(Point01Writable.class);
         job.setOutputValueClass(Text.class);
