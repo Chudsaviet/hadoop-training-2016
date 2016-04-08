@@ -80,11 +80,11 @@ public class Point02 extends Configured implements Tool{
         job2.setOutputKeyClass(IntWritable.class);
         job2.setOutputValueClass(Text.class);
 
+        job2.setSortComparatorClass(Point02DescendingIntWritable.DescendingComparator.class);
+
         job2.setNumReduceTasks(3);
 
         job2.setPartitionerClass(Point02Partitioner.class);
-
-        job2.setSortComparatorClass(Point02DescendingComparator.class);
 
         System.out.println("Running stage 2");
         return job2.waitForCompletion(true) ? 0 : 2;
