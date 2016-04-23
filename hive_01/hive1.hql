@@ -2,6 +2,18 @@
 ---------- Hive Homework 01 - Timofei Korostelev ----------
 -----------------------------------------------------------
 
+SET hive.stats.autogather=false;
+SET hive.exec.compress.output=false;
+SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
+SET mapred.output.compression.type=BLOCK;
+SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
+
+SET hive.merge.mapredfiles=true;
+SET hive.merge.smallfiles.avgsize=1000000000;
+
+SET hive.exec.dynamic.partition=true;
+SET hive.exec.dynamic.partition.mode=nonstrict;
+
 -- Create staging fact table as an external table
 DROP TABLE IF EXISTS STG_CLICK_FACT;
 CREATE EXTERNAL TABLE STG_CLICK_FACT(
