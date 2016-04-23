@@ -2,18 +2,6 @@
 ---------- Hive Homework 01 - Timofei Korostelev ----------
 -----------------------------------------------------------
 
-SET hive.stats.autogather=false;
-SET hive.exec.compress.output=false;
-SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
-SET mapred.output.compression.type=BLOCK;
-SET hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat;
-
-SET hive.merge.mapredfiles=true;
-SET hive.merge.smallfiles.avgsize=1000000000;
-
-SET hive.exec.dynamic.partition=true;
-SET hive.exec.dynamic.partition.mode=nonstrict;
-
 -- Create staging fact table as an external table
 DROP TABLE IF EXISTS STG_CLICK_FACT;
 CREATE EXTERNAL TABLE STG_CLICK_FACT(
@@ -93,7 +81,6 @@ WHERE
     AND USER_AGENT IS NOT NULL
     AND LENGTH(IPINYOU_ID) IN (14,15)
     AND CLICK_DTTM IS NOT NULL
-    AND STREAM_ID=11
 ;
 
 -- Calculate Bid Flow (point 01) report
@@ -122,6 +109,7 @@ FROM
     CLICK_FACT
 WHERE
     CLICK_DT IS NOT NULL
+    AND STREAM_ID = 1
 GROUP BY
     IPINYOU_ID,
     DEVICE,
@@ -174,8 +162,8 @@ FROM
     INNER JOIN
     ALL_DATES AS dt
 ;
--- DROP TABLE ALL_DEVICES PURGE;
--- DROP TABLE ALL_DATES PURGE;
+DROP TABLE ALL_DEVICES PURGE;
+DROP TABLE ALL_DATES PURGE;
 
 -- Create ALL_USERS_ALL_DEVICES_ALL_DATES view as Decart product
 DROP TABLE IF EXISTS ALL_USERS_ALL_DEVICES_ALL_DATES PURGE;
@@ -189,8 +177,8 @@ FROM
     INNER JOIN
     ALL_DEVICES_ALL_DATES AS dd
 ;
--- DROP TABLE ALL_USERS PURGE;
--- DROP TABLE ALL_DEVICES_ALL_DATES PURGE;
+DROP TABLE ALL_USERS PURGE;
+DROP TABLE ALL_DEVICES_ALL_DATES PURGE;
 
 ANALYZE TABLE ALL_USERS_ALL_DEVICES_ALL_DATES COMPUTE STATISTICS;
 ANALYZE TABLE ALL_USERS_ALL_DEVICES_ALL_DATES COMPUTE STATISTICS FOR COLUMNS;
@@ -213,8 +201,8 @@ FROM
         AND aaa.DATE_VAL = udc.CLICK_DT
     )
 ;
--- DROP TABLE ALL_USERS_ALL_DEVICES_ALL_DATES PURGE;
--- DROP TABLE USER_DATE_CLICKS PURGE;
+DROP TABLE ALL_USERS_ALL_DEVICES_ALL_DATES PURGE;
+DROP TABLE USER_DATE_CLICKS PURGE;
 
 -- Calculate User-Date-SEGMENT table
 DROP TABLE IF EXISTS USER_DEVICE_DAY_SEGMENT PURGE;
@@ -254,7 +242,7 @@ SELECT
 FROM
     USER_ALLDATES_ALLDEVICES_CLICKS
 ;
--- DROP TABLE USER_ALLDATES_ALLDEVICES_CLICKS PURGE;
+DROP TABLE USER_ALLDATES_ALLDEVICES_CLICKS PURGE;
 
 -- Calculate Customers by segments report
 DROP TABLE IF EXISTS CUSTOMERS_BY_SEGMENTS PURGE;
