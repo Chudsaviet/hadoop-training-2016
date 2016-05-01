@@ -4,9 +4,11 @@
 
 SET hive.stats.autogather=true;
 
-SET hive.merge.mapredfiles=true;
 SET hive.enforce.bucketing=true;
-SET hive.optimize.ppd=true;
+
+ADD JAR ./target/hive01-1.0.jar;
+
+CREATE TEMPORARY FUNCTION parseUserAgent AS 'org.tkorostelev.hive01.ParseUserAgent';
 
 -- Create staging fact table as an external table
 DROP TABLE IF EXISTS STG_CLICK_FACT;
@@ -67,19 +69,8 @@ SELECT
     ADVERTISER_ID,
     USER_TAGS,
     STREAM_ID,
-    CAST(CASE
-        WHEN 
-            INSTR(UPPER(USER_AGENT), 'MOBILE') > 0
-        THEN 1 -- Mobile
-        WHEN 
-            INSTR(UPPER(USER_AGENT), 'TABLET') > 0
-        THEN 2 -- Tablet
-        WHEN 
-            INSTR(UPPER(USER_AGENT), 'BOT') > 0
-        THEN 3 -- Bot
-        ELSE 0 -- Desktop/Other
-    END AS TINYINT ) AS DEVICE,
-    INPUT__FILE__NAME AS INPUT_FILE_NAME
+    INPUT__FILE__NAME AS INPUT_FILE_NAME,
+    SPLIT(parseUserAgent(USER_AGENT),'\\|') AS PARSED_USER_AGENT
 FROM
     STG_CLICK_FACT
 WHERE
@@ -111,7 +102,18 @@ CREATE TABLE USER_DATE_CLICKS
 STORED AS ORC tblproperties ("orc.compress"="SNAPPY")
 AS SELECT
     IPINYOU_ID,
-    DEVICE,
+    CAST(CASE
+            WHEN
+                PARSED_USER_AGENT[2] = 'MOBILE'
+            THEN 1 -- Mobile
+            WHEN
+                PARSED_USER_AGENT[2] = 'TABLET'
+            THEN 2 -- Tablet
+            WHEN
+                PARSED_USER_AGENT[2] = 'BOT'
+            THEN 3 -- Bot
+            ELSE 0 -- Desktop/Other
+        END AS TINYINT ) AS DEVICE,
     CLICK_DT,
     CAST(COUNT(1) AS SMALLINT) AS CLICKS
 FROM
@@ -121,7 +123,18 @@ WHERE
     AND STREAM_ID = 1
 GROUP BY
     IPINYOU_ID,
-    DEVICE,
+    CAST(CASE
+            WHEN
+                PARSED_USER_AGENT[2] = 'MOBILE'
+            THEN 1 -- Mobile
+            WHEN
+                PARSED_USER_AGENT[2] = 'TABLET'
+            THEN 2 -- Tablet
+            WHEN
+                PARSED_USER_AGENT[2] = 'BOT'
+            THEN 3 -- Bot
+            ELSE 0 -- Desktop/Other
+        END AS TINYINT ),
     CLICK_DT
 ;
 
